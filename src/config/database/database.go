@@ -1,36 +1,43 @@
 package database
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/VieiraGabrielAlexandre/api_comics_and_books/src/models"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
+	"log"
 	"os"
 )
 
-var Db *sql.DB
+var DB *gorm.DB
 
 func Connect() {
-	username := os.Getenv("DB_USERNAME")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	database := os.Getenv("DB_DATABASE")
 
-	dsn := username + ":" + password + "@tcp(" + host + ":" + port + ")/" + database + "?parseTime=true"
+	dsn := os.Getenv("DB_USERNAME") +
+		":" +
+		os.Getenv("DB_PASSWORD") +
+		"@tcp(" +
+		os.Getenv("DB_HOST") +
+		":" +
+		os.Getenv("DB_PORT") +
+		")/" +
+		os.Getenv("DB_DATABASE") +
+		"?charset=utf8mb4&parseTime=True&loc=Local"
 
-	var err error
-
-	Db, err = sql.Open("mysql", dsn)
-
-	if err != nil {
-		panic(err.Error())
-	}
-
-	err = Db.Ping()
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+		Logger: logger.Default.LogMode(logger.Info),
+	})
 
 	if err != nil {
-		panic(err.Error())
+		log.Panic(err)
 	}
 
-	defer Db.Close()
-	fmt.Println("Successfully connected to database")
+	// Create from map
+
+	fmt.Println("Executing migrations ...")
+	db.AutoMigrate(&models.Comics{})
+	fmt.Println("Sucess")
+
+	DB = db
 }
