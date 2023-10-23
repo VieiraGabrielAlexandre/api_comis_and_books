@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"errors"
 	"github.com/VieiraGabrielAlexandre/api_comics_and_books/src/config/database"
 	"github.com/VieiraGabrielAlexandre/api_comics_and_books/src/models"
 	"gorm.io/gorm"
@@ -8,6 +9,7 @@ import (
 
 type ComicsBooksRepository interface {
 	Create(comics models.Comics) (models.Comics, error)
+	Update(comics models.Comics, id int) (models.Comics, error)
 }
 
 type ComicsBooksRepositoryDb struct {
@@ -23,6 +25,23 @@ func (repo ComicsBooksRepositoryDb) Create(comics models.Comics) (models.Comics,
 
 	if err != nil {
 		return comics, err
+	}
+
+	return comics, nil
+}
+
+func (repo ComicsBooksRepositoryDb) Update(comics models.Comics, id int) (models.Comics, error) {
+	result := database.DB.
+		Where(models.Comics{ID: uint(id)}).
+		Assign(comics).
+		Updates(&comics)
+
+	if result.RowsAffected == 0 {
+		return comics, errors.New("Not found")
+	}
+
+	if result.Error != nil {
+		return comics, result.Error
 	}
 
 	return comics, nil
