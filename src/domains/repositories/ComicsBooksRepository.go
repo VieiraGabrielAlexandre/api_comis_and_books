@@ -10,6 +10,7 @@ import (
 type ComicsBooksRepository interface {
 	Create(comics models.Comics) (models.Comics, error)
 	Update(comics models.Comics, id int) (models.Comics, error)
+	GetByID(id int) (models.Comics, error)
 }
 
 type ComicsBooksRepositoryDb struct {
@@ -32,13 +33,29 @@ func (repo ComicsBooksRepositoryDb) Create(comics models.Comics) (models.Comics,
 
 func (repo ComicsBooksRepositoryDb) Update(comics models.Comics, id int) (models.Comics, error) {
 	result := database.DB.
-		Where(models.Comics{ID: uint(id)}).
+		Model(&comics).
 		Assign(comics).
+		Where("id = ?", id).
 		Updates(&comics)
 
 	if result.RowsAffected == 0 {
 		return comics, errors.New("Not found")
 	}
+
+	if result.Error != nil {
+		return comics, result.Error
+	}
+
+	return comics, nil
+}
+
+func (repo ComicsBooksRepositoryDb) GetByID(id int) (models.Comics, error) {
+	var comics models.Comics
+
+	result := database.DB.
+		Model(&models.Comics{}).
+		Where("id = ?", id).
+		First(&comics)
 
 	if result.Error != nil {
 		return comics, result.Error
