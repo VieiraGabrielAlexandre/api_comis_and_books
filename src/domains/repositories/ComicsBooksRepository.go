@@ -12,6 +12,7 @@ type ComicsBooksRepository interface {
 	Update(comics models.Comics, id int) (models.Comics, error)
 	GetByID(id int) (models.Comics, error)
 	GetAllPaginate(page int, limit int) ([]models.Comics, error)
+	Delete(id int) error
 	Count() (int64, error)
 }
 
@@ -80,6 +81,19 @@ func (repo ComicsBooksRepositoryDb) GetAllPaginate(page int, limit int) ([]model
 	}
 
 	return comics, nil
+}
+
+func (repo ComicsBooksRepositoryDb) Delete(id int) error {
+	result := database.DB.
+		Model(&models.Comics{}).
+		Where("id = ?", id).
+		Delete(&models.Comics{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (repo ComicsBooksRepositoryDb) Count() (int64, error) {

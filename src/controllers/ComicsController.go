@@ -169,5 +169,28 @@ func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
 
 // Delete handles the deletion of a comic.
 func Delete(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Delete")
+	parts := strings.Split(r.URL.Path, "/")
+	if len(parts) < 2 {
+		http.Error(w, "Incorrect ID parameter", http.StatusUnprocessableEntity)
+		return
+	}
+
+	idString := parts[len(parts)-1]
+	id, err := strconv.Atoi(idString)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	repo := repositories.ComicsBooksRepositoryDb{Db: database.DB}
+
+	err = repo.Delete(id)
+
+	if err != nil {
+		println(err)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Comic updated successfully"))
 }
