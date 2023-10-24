@@ -122,7 +122,49 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 // GetAllPaginate retrieves comics with pagination.
 func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "GetAllPaginate")
+	var page int = 1
+	var limit int = 10
+
+	if r.URL.Query().Get("page") != "" {
+		page, _ = strconv.Atoi(r.URL.Query().Get("page"))
+	}
+
+	if r.URL.Query().Get("limit") != "" {
+		limit, _ = strconv.Atoi(r.URL.Query().Get("limit"))
+	}
+
+	repo := repositories.ComicsBooksRepositoryDb{Db: database.DB}
+
+	total, _ := repo.Count()
+	comics, err := repo.GetAllPaginate(page, limit)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	metadata := struct {
+		TotalCount int             `json:"total_count"`
+		Page       int             `json:"page"`
+		Limit      int             `json:"limit"`
+		Comics     []models.Comics `json:"comics"`
+	}{
+		TotalCount: int(total),
+		Page:       page,
+		Limit:      limit,
+		Comics:     comics,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	jsonResponse, err := json.Marshal(metadata)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(jsonResponse)
 }
 
 // Delete handles the deletion of a comic.

@@ -11,6 +11,8 @@ type ComicsBooksRepository interface {
 	Create(comics models.Comics) (models.Comics, error)
 	Update(comics models.Comics, id int) (models.Comics, error)
 	GetByID(id int) (models.Comics, error)
+	GetAllPaginate(page int, limit int) ([]models.Comics, error)
+	Count() (int64, error)
 }
 
 type ComicsBooksRepositoryDb struct {
@@ -62,4 +64,31 @@ func (repo ComicsBooksRepositoryDb) GetByID(id int) (models.Comics, error) {
 	}
 
 	return comics, nil
+}
+
+func (repo ComicsBooksRepositoryDb) GetAllPaginate(page int, limit int) ([]models.Comics, error) {
+	var comics []models.Comics
+
+	result := database.DB.
+		Model(&models.Comics{}).
+		Offset((page - 1) * limit).
+		Limit(limit).
+		Find(&comics)
+
+	if result.Error != nil {
+		return comics, result.Error
+	}
+
+	return comics, nil
+}
+
+func (repo ComicsBooksRepositoryDb) Count() (int64, error) {
+	count := int64(0)
+	err := repo.Db.Model(&models.Comics{}).Count(&count).Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
 }
