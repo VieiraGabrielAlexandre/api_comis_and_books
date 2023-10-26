@@ -122,8 +122,8 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 // GetAllPaginate retrieves comics with pagination.
 func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
-	var page int = 1
-	var limit int = 10
+	var page = 1
+	var limit = 10
 
 	if r.URL.Query().Get("page") != "" {
 		page, _ = strconv.Atoi(r.URL.Query().Get("page"))
@@ -133,10 +133,15 @@ func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
 		limit, _ = strconv.Atoi(r.URL.Query().Get("limit"))
 	}
 
+	orderBy := r.URL.Query().Get("orderBy")
+	filter := r.URL.Query().Get("filter")
+	column := r.URL.Query().Get("column")
+	order := r.URL.Query().Get("order")
+
 	repo := repositories.ComicsBooksRepositoryDb{Db: database.DB}
 
 	total, _ := repo.Count()
-	comics, err := repo.GetAllPaginate(page, limit)
+	comics, err := repo.GetAllPaginate(page, limit, filter, orderBy, column, order)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

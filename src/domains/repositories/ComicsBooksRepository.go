@@ -11,7 +11,7 @@ type ComicsBooksRepository interface {
 	Create(comics models.Comics) (models.Comics, error)
 	Update(comics models.Comics, id int) (models.Comics, error)
 	GetByID(id int) (models.Comics, error)
-	GetAllPaginate(page int, limit int) ([]models.Comics, error)
+	GetAllPaginate(page int, limit int, filter string, orderBy string, column string, order string) ([]models.Comics, error)
 	Delete(id int) error
 	Count() (int64, error)
 }
@@ -67,14 +67,25 @@ func (repo ComicsBooksRepositoryDb) GetByID(id int) (models.Comics, error) {
 	return comics, nil
 }
 
-func (repo ComicsBooksRepositoryDb) GetAllPaginate(page int, limit int) ([]models.Comics, error) {
+func (repo ComicsBooksRepositoryDb) GetAllPaginate(page int, limit int, filter string, orderBy string, column string, order string) ([]models.Comics, error) {
 	var comics []models.Comics
 
+	orderQuery := "id"
+
+	if orderBy != "" {
+		orderQuery = orderBy
+	}
+
 	result := database.DB.
+		Order(orderQuery + " " + order).
 		Model(&models.Comics{}).
 		Offset((page - 1) * limit).
-		Limit(limit).
-		Find(&comics)
+		Limit(limit)
+	if filter != "" {
+		result = result.Where(column+" LIKE ?", "%"+filter+"%")
+	}
+
+	result = result.Find(&comics)
 
 	if result.Error != nil {
 		return comics, result.Error
