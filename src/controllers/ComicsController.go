@@ -13,6 +13,10 @@ import (
 	"github.com/VieiraGabrielAlexandre/api_comics_and_books/src/models"
 )
 
+type ErrorResponse struct {
+	Message string `json:"message"`
+}
+
 // Create handles the creation of a comic.
 func Create(w http.ResponseWriter, r *http.Request) {
 	var comic models.Comics
@@ -46,7 +50,9 @@ func Create(w http.ResponseWriter, r *http.Request) {
 func GetByID(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 2 {
-		http.Error(w, "Incorrect ID parameter", http.StatusUnprocessableEntity)
+		errorResponse := ErrorResponse{Message: "Invalid parameter"}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
 	}
 
@@ -54,7 +60,7 @@ func GetByID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idString)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		launchHttpError(w, err)
 		return
 	}
 
@@ -62,18 +68,19 @@ func GetByID(w http.ResponseWriter, r *http.Request) {
 	comic, err := repo.GetByID(id)
 
 	if err != nil {
-		http.Error(w, "Failed to retrieve comic", http.StatusUnprocessableEntity)
+		errorResponse := ErrorResponse{Message: "Failed to retrieve comic"}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	jsonResponse, err := json.Marshal(comic)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		launchHttpError(w, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonResponse)
 }
 
@@ -83,7 +90,9 @@ func Update(w http.ResponseWriter, r *http.Request) {
 
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 2 {
-		http.Error(w, "Incorrect ID parameter", http.StatusUnprocessableEntity)
+		errorResponse := ErrorResponse{Message: "Invalid parameter"}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
 	}
 
@@ -91,18 +100,18 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idString)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		launchHttpError(w, err)
 		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		launchHttpError(w, err)
 		return
 	}
 
 	if err := json.Unmarshal(body, &comic); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		launchHttpError(w, err)
 		return
 	}
 
@@ -112,7 +121,7 @@ func Update(w http.ResponseWriter, r *http.Request) {
 	comic, err = repo.Update(comic, id)
 
 	if err != nil {
-		http.Error(w, "Failed to update comic", http.StatusUnprocessableEntity)
+		launchHttpError(w, err)
 		return
 	}
 
@@ -144,7 +153,7 @@ func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
 	comics, err := repo.GetAllPaginate(page, limit, filter, orderBy, column, order)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		launchHttpError(w, err)
 		return
 	}
 
@@ -165,18 +174,27 @@ func GetAllPaginate(w http.ResponseWriter, r *http.Request) {
 
 	jsonResponse, err := json.Marshal(metadata)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		launchHttpError(w, err)
 		return
 	}
 
 	w.Write(jsonResponse)
 }
 
+func launchHttpError(w http.ResponseWriter, err error) {
+	errorResponse := ErrorResponse{Message: err.Error()}
+	w.WriteHeader(http.StatusInternalServerError)
+	json.NewEncoder(w).Encode(errorResponse)
+	return
+}
+
 // Delete handles the deletion of a comic.
 func Delete(w http.ResponseWriter, r *http.Request) {
 	parts := strings.Split(r.URL.Path, "/")
 	if len(parts) < 2 {
-		http.Error(w, "Incorrect ID parameter", http.StatusUnprocessableEntity)
+		errorResponse := ErrorResponse{Message: "error"}
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(errorResponse)
 		return
 	}
 
@@ -184,7 +202,7 @@ func Delete(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idString)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		launchHttpError(w, err)
 		return
 	}
 
