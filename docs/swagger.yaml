@@ -1,0 +1,160 @@
+basePath: /api/v1
+definitions:
+  documentation.Comics:
+    properties:
+      editor:
+        type: string
+      publisher:
+        type: string
+      title:
+        type: string
+      volume:
+        type: integer
+    type: object
+  documentation.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/// ErrorResponse represents the error
+    response.
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server celler server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger Example API
+  version: "1.0"
+paths:
+  /comics:
+    get:
+      description: Get a list of comics with pagination
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Results per page
+        in: query
+        name: limit
+        type: integer
+      - description: Order by
+        in: query
+        name: orderBy
+        type: string
+      - description: Filter
+        in: query
+        name: filter
+        type: string
+      - description: Column
+        in: query
+        name: column
+        type: string
+      - description: Order
+        in: query
+        name: order
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comics response
+          schema:
+            $ref: '#/definitions/documentation.Comics'
+        "500":
+          description: Error response
+          schema:
+            $ref: '#/definitions/documentation.ErrorResponse'
+      summary: Get comics with pagination
+    post:
+      consumes:
+      - application/json
+      description: Create a new comic entry
+      parameters:
+      - description: Comic object
+        in: body
+        name: comic
+        required: true
+        schema:
+          $ref: '#/definitions/documentation.Comics'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Comic created successfully
+          schema:
+            type: string
+      summary: Create a new comic
+  /comics/{id}:
+    delete:
+      description: Delete a comic by its ID
+      parameters:
+      - description: Comic ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comic deleted successfully
+          schema:
+            type: string
+      summary: Delete a comic by ID
+    get:
+      description: Get a comic by its ID
+      parameters:
+      - description: Comic ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comic object
+          schema:
+            $ref: '#/definitions/documentation.Comics'
+        "500":
+          description: Error response
+          schema:
+            $ref: '#/definitions/documentation.ErrorResponse'
+      summary: Get a comic by ID
+    put:
+      consumes:
+      - application/json
+      description: Update a comic by its ID
+      parameters:
+      - description: Comic ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated comic object
+        in: body
+        name: comic
+        required: true
+        schema:
+          $ref: '#/definitions/documentation.Comics'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Comic updated successfully
+          schema:
+            type: string
+      summary: Update a comic by ID
+securityDefinitions:
+  BasicAuth:
+    type: basic
+swagger: "2.0"
